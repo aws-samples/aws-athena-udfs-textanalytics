@@ -1,0 +1,52 @@
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Amazon Athena UDFs for Text Analytics using Amazon Comprehend and Amazon Translate (Prototype v0.2)
+Metadata:
+  'AWS::ServerlessRepo::Application':
+    Name: TextAnalyticsUDFHandler
+    Description: 'This connector enables Amazon Athena to leverage Amazon Comprehend and Amazon Translate services via UDFs made available via Lambda.'
+    Author: 'Bob Strahan'
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels:
+      - athena-federation
+    HomePageUrl: 'https://github.com/rstrahan/aws-athena-udfs-textanalytics/tree/main/athena-udfs-textanalytics'
+    SemanticVersion: 2020.51.1
+    SourceCodeUrl: 'https://github.com/rstrahan/aws-athena-udfs-textanalytics/tree/main/athena-udfs-textanalytics'
+Parameters:
+  LambdaFunctionName:
+    Description: 'The name you will give to Lambda function which executes your UDFs. This name must satisfy the pattern ^[a-z0-9-_]{1,64}$'
+    Type: String
+    Default: "textanalytics-udf"
+    AllowedPattern: ^[a-z0-9-_]{1,64}$
+  LambdaTimeout:
+    Description: 'Maximum Lambda invocation runtime in seconds. (min 1 - 900 max)'
+    Default: 900
+    Type: Number
+  LambdaMemory:
+    Description: 'Lambda memory in MB (min 128 - 3008 max).'
+    Default: 3008
+    Type: Number
+Resources:
+  ConnectorConfig:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Handler: "com.amazonaws.athena.connectors.textanalytics.TextAnalyticsUDFHandler"
+      CodeUri: "./target/textanalyticsudfs-1.0.jar"
+      Description: "This connector enables Amazon Athena to leverage Amazon Comprehend and Amazon Translate text analytics services via UDFs made available via Lambda."
+      Runtime: java8
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemory
+      Policies:
+        - Statement:
+            - Action:
+                - comprehend:BatchDetectDominantLanguage
+                - comprehend:BatchDetectSentiment
+                - comprehend:BatchDetectEntities
+                - comprehend:DetectPiiEntities
+                - translate:TranslateText
+                - comprehend:DetectDominantLanguage
+              Effect: Allow
+              Resource: "*"
+          Version: '2012-10-17'
