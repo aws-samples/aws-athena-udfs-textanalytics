@@ -598,9 +598,9 @@ public class TextAnalyticsUDFHandler
         for (Object[] batch : getBatches(input, this.maxBatchSize, this.maxTextBytes, splitLongText)) {
             String[] textArray = (String[]) batch[0];
             String singleRowOrMultiRow = (String) batch[1];
-            System.out.println("DEBUG: Call translate Translatetext API - Batch => Records: " + textArray.length);
             if (singleRowOrMultiRow.equals("MULTI_ROW_BATCH")) {
                 // batchArray represents multiple output rows, one element per output row
+                System.out.println("DEBUG: Call MultiRowBatchTranslateText Translatetext API - Batch => Records: " + textArray.length);
                 String[] sourceLanguageCodesSubset = Arrays.copyOfRange(sourceLanguageCodes, rowNum, rowNum + textArray.length);
                 String[] targetLanguageCodesSubset = Arrays.copyOfRange(targetLanguageCodes, rowNum, rowNum + textArray.length);
                 String[] terminologyNamesSubset = Arrays.copyOfRange(terminologyNames, rowNum, rowNum + textArray.length);
@@ -611,6 +611,7 @@ public class TextAnalyticsUDFHandler
             }
             else {
                 // batchArray represents single output row (long text split)
+                System.out.println("DEBUG: Call TextSplitBatchTranslateText Translatetext API - Batch => Records: " + textArray.length);
                 String sourceLanguageCode = sourceLanguageCodes[rowNum];
                 String targetLanguageCode = targetLanguageCodes[rowNum];
                 String terminologyName = terminologyNames[rowNum];
@@ -634,9 +635,15 @@ public class TextAnalyticsUDFHandler
             if (! terminologyNamesSubset[i].equals("null")) {
                 translateTextRequest = translateTextRequest.withTerminologyNames(terminologyNamesSubset[i]);
             }
-            TranslateTextResult translateTextResult = getTranslateClient().translateText(translateTextRequest);
-            String translatedText = translateTextResult.getTranslatedText(); 
-            result[i] = translatedText;
+            try {
+                TranslateTextResult translateTextResult = getTranslateClient().translateText(translateTextRequest);
+                String translatedText = translateTextResult.getTranslatedText();  
+                result[i] = translatedText;
+            } 
+            catch (Exception e) {
+                System.out.println("ERROR: Translate API Exception.\nInput String size: " + getUtf8StringLength(batch[i]) + " bytes. String:\n" + batch[i]);
+                throw e;
+            }
         }
         return result;
     }
@@ -652,10 +659,15 @@ public class TextAnalyticsUDFHandler
             if (! terminologyName.equals("null")) {
                 translateTextRequest = translateTextRequest.withTerminologyNames(terminologyName);
             }
-
-            TranslateTextResult translateTextResult = getTranslateClient().translateText(translateTextRequest);
-            String translatedText = translateTextResult.getTranslatedText();  
-            result[i] = translatedText;
+            try {
+                TranslateTextResult translateTextResult = getTranslateClient().translateText(translateTextRequest);
+                String translatedText = translateTextResult.getTranslatedText();  
+                result[i] = translatedText;
+            } 
+            catch (Exception e) {
+                System.out.println("ERROR: Translate API Exception.\nInput String size: " + getUtf8StringLength(batch[i]) + " bytes. String:\n" + batch[i]);
+                throw e;
+            }
         }
         // merge results to single output row
         String mergedResult = mergeText(result);
@@ -744,10 +756,11 @@ public class TextAnalyticsUDFHandler
                 start = i;
                 c = 1;
             }
-            boolean tooLong = (getUtf8StringLength(input[i]) > maxTextBytes) ? true : false;
+            int textLength = getUtf8StringLength(input[i]);
+            boolean tooLong = (textLength >= maxTextBytes) ? true : false;
             if (tooLong && !splitLongText) {
                 // truncate this row
-                System.out.println("Truncating long text field to " + maxTextBytes + " bytes");
+                System.out.println("Truncating long text field (" + textLength + " bytes) to " + maxTextBytes + " bytes");
                 input[i] = truncateUtf8(input[i], maxTextBytes);
             }
             if (tooLong && splitLongText) {
@@ -757,11 +770,10 @@ public class TextAnalyticsUDFHandler
                 }
                 // split this row and add the text splits as a new *TEXT_SPLIT_BATCH* batch
                 String[] textSplit = splitLongText(input[i], maxTextBytes);
-                System.out.println("Split long text field into " + textSplit.length + " segments of under " + maxTextBytes + "bytes");
+                System.out.println("Split long text field (" + textLength + " bytes) into " + textSplit.length + " segments of under " + maxTextBytes + " bytes");
                 batches.add(new Object[] {textSplit, "TEXT_SPLIT_BATCH"});
                 // increment counters for next row / next batch
-                i++;
-                start = i;
+                start = i + 1;
                 c = 1;                 
             }            
         }
@@ -788,10 +800,11 @@ public class TextAnalyticsUDFHandler
                 start = i;
                 c = 1;
             }
-            boolean tooLong = (getUtf8StringLength(input[i]) > maxTextBytes) ? true : false;
+            int textLength = getUtf8StringLength(input[i]);
+            boolean tooLong = (textLength > maxTextBytes) ? true : false;
             if (tooLong && !splitLongText) {
                 // truncate this row
-                System.out.println("Truncating long text field to " + maxTextBytes + " bytes");
+                System.out.println("Truncating long text field (" + textLength + " bytes) to " + maxTextBytes + " bytes");
                 input[i] = truncateUtf8(input[i], maxTextBytes);
             }
             if (tooLong && splitLongText) {
@@ -801,11 +814,10 @@ public class TextAnalyticsUDFHandler
                 }
                 // split this row and add the text splits as a new *TEXT_SPLIT_BATCH* batch
                 String[] textSplit = splitLongText(input[i], maxTextBytes);
-                System.out.println("Split long text field into " + textSplit.length + " segments of under " + maxTextBytes + "bytes");
+                System.out.println("Split long text field (" + textLength + " bytes) into " + textSplit.length + " segments of under " + maxTextBytes + " bytes");
                 batches.add(new Object[] {textSplit, "TEXT_SPLIT_BATCH", languageCode});
                 // increment counters for next row / next batch
-                i++;
-                start = i;
+                start = i + 1;
                 c = 1;
                 if (i < input.length) {
                     languageCode = languageCodes[i];
@@ -850,17 +862,39 @@ public class TextAnalyticsUDFHandler
         int bytesCnt = 0;
         int start = 0;
         for (int i = 0; i < sentences.length; i++) {
-            bytesCnt += getUtf8StringLength(sentences[i]);
-            if (bytesCnt > maxTextBytes) {
+            int sentenceLength = getUtf8StringLength(sentences[i]);
+            if (sentenceLength >= maxTextBytes) {
+                System.out.println("DATA WARNING: sentence size (" + sentenceLength + " bytes) is larger than max (" + maxTextBytes + " bytes). Unsplittable.");
+                System.out.println("Problematic sentence: " + sentences[i]);
+                // TODO - Truncate, or drop?
+            }
+            bytesCnt += sentenceLength;
+            if (bytesCnt >= maxTextBytes) {
                 // join sentences prior to this one, and add to splitBatches. Reset counters.
-                splitBatches.add(String.join("", Arrays.copyOfRange(sentences, start, i)));
+                String splitBatch = String.join("", Arrays.copyOfRange(sentences, start, i));
+                int splitBatchLength = getUtf8StringLength(splitBatch);
+                if (splitBatchLength == 0 || splitBatchLength > maxTextBytes) {
+                    System.out.println("DEBUG: Split size is " + splitBatchLength + " bytes - Skipping.");
+                } 
+                else {
+                    System.out.println("DEBUG: Split size (" + splitBatchLength + " bytes)");
+                    splitBatches.add(splitBatch);
+                }
                 start = i;
                 bytesCnt = getUtf8StringLength(sentences[i]);
             }
         }
         // last split
         if (start < sentences.length) {
-            splitBatches.add(String.join("", Arrays.copyOfRange(sentences, start, sentences.length)));
+            String splitBatch = String.join("", Arrays.copyOfRange(sentences, start, sentences.length));
+            int splitBatchLength = getUtf8StringLength(splitBatch);
+            if (splitBatchLength == 0 || splitBatchLength > maxTextBytes) {
+                System.out.println("DEBUG: Split size is " + splitBatchLength + " bytes - Skipping.");
+            } 
+            else {
+                System.out.println("DEBUG: Split size (" + splitBatchLength + " bytes)");
+                splitBatches.add(splitBatch);
+            }
         }
         String[] splitArray = (String[]) splitBatches.toArray(new String[0]);
         return splitArray;
@@ -1105,13 +1139,13 @@ public class TextAnalyticsUDFHandler
         textJSON = toJSON(new String[]{"I am Bob, I live in Herndon", "I love to visit France"});
         String sourcelangJSON = toJSON(new String[]{"en", "en"});
         String targetlangJSON = toJSON(new String[]{"fr", "fr"});
-        String terminologyNamesJSON = toJSON(new String[]{null, null});
+        String terminologyNamesJSON = toJSON(new String[]{"null", "null"});
         System.out.println("translate_text - 1 row: " + textJSON);
         System.out.println(textAnalyticsUDFHandler.translate_text(textJSON, sourcelangJSON, targetlangJSON, terminologyNamesJSON));
 
         System.out.println("\nLONG TEXT TESTS");
         int textBytes = 60;
-        int batchSize = 2; 
+        int batchSize = 3; 
         textAnalyticsUDFHandler.maxTextBytes = textBytes;
         textAnalyticsUDFHandler.maxBatchSize = batchSize;
         System.out.println("Set max text length to " + textBytes + " bytes, and max batch size to " + batchSize + ", for testing");
@@ -1121,7 +1155,7 @@ public class TextAnalyticsUDFHandler
         System.out.println("check logs for evidence of long text truncated by detect_sentiment.");
         System.out.println(textAnalyticsUDFHandler.detect_sentiment(textJSON, langJSON));
         System.out.println("detect_entities / redact_entities - 1 row: " + textJSON);
-        System.out.println("check logs for evidence of long text split into 2 batches w/ max 2 rows per batch.");
+        System.out.println("check logs for evidence of long text split into 2 batches w/ max 3 rows per batch.");
         System.out.println(textAnalyticsUDFHandler.detect_entities(textJSON, langJSON));        
         System.out.println(textAnalyticsUDFHandler.redact_entities(textJSON, langJSON, makeJsonArray("ALL", 1)));        
         System.out.println("detect_pii_entities / redact_pii_entities - 1 row: " + textJSON);
