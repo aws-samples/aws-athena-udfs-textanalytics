@@ -260,6 +260,8 @@ Dataset: See https://s3.amazonaws.com/amazon-reviews-pds/readme.html
 
 1. Create external table to access product reviews
 
+a. Create external table
+
 ```
 CREATE EXTERNAL TABLE amazon_reviews_parquet(
   marketplace string, 
@@ -287,6 +289,11 @@ OUTPUTFORMAT
 LOCATION
   's3://amazon-reviews-pds/parquet/'
 ```
+b. Add partitions
+```
+MSCK REPAIR amazon_reviews_parquet
+```
+
 
 2. Create a new parquet table with detected languages and sentiment from 1996 product reviews (about 5000 reviews)
 ```
