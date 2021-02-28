@@ -439,7 +439,7 @@ Esta lloviendo en seattle	                              "es"	    0.98029345
 
 ## More Examples
 
-See the AWS blog post <a href="https://aws.amazon.com/blogs/machine-learning/translate-and-analyze-text-using-sql-functions-with-amazon-athena-amazon-translate-and-amazon-comprehend/">"Translate and analyze text using SQL functions with Amazon Athena, Amazon Translate, and Amazon Comprehend"</a>
+See the AWS blog post [Translate and analyze text using SQL functions with Amazon Athena, Amazon Translate, and Amazon Comprehend](https://aws.amazon.com/blogs/machine-learning/translate-and-analyze-text-using-sql-functions-with-amazon-athena-amazon-translate-and-amazon-comprehend/)
 
 ## License
 
