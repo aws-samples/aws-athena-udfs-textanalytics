@@ -291,7 +291,7 @@ LOCATION
 ```
 b. Add partitions
 ```
-MSCK REPAIR amazon_reviews_parquet
+MSCK REPAIR TABLE amazon_reviews_parquet;
 ```
 
 
