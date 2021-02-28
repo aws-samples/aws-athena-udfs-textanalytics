@@ -10,9 +10,9 @@ Metadata:
     ReadmeUrl: README.md
     Labels:
       - athena-federation
-    HomePageUrl: 'https://github.com/rstrahan/aws-athena-udfs-textanalytics/tree/main/athena-udfs-textanalytics'
+    HomePageUrl: 'https://github.com/aws-samples/aws-athena-udfs-textanalytics/blob/main/athena-udfs-textanalytics'
     SemanticVersion: 2020.51.1
-    SourceCodeUrl: 'https://github.com/rstrahan/aws-athena-udfs-textanalytics/tree/main/athena-udfs-textanalytics'
+    SourceCodeUrl: 'https://github.com/aws-samples/aws-athena-udfs-textanalytics/blob/main/athena-udfs-textanalytics'
 Parameters:
   LambdaFunctionName:
     Description: 'The name you will give to Lambda function which executes your UDFs. This name must satisfy the pattern ^[a-z0-9-_]{1,64}$'
