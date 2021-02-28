@@ -299,16 +299,16 @@ FROM
    USING FUNCTION detect_dominant_language(col1 VARCHAR) RETURNS VARCHAR TYPE LAMBDA_INVOKE WITH (lambda_name = 'textanalytics-udf')
    SELECT *, detect_dominant_language(review_headline) AS language
    FROM amazon_reviews_parquet
+   WHERE year = 1996
    )
 WHERE language in ('ar', 'hi', 'ko', 'zh-TW', 'ja', 'zh', 'de', 'pt', 'en', 'it', 'fr', 'es')
-AND year = 1996
 ```
 
 *Notes:  
 (1) Inner query detects the language in which the review was written.  
 (2) Outer query detects the sentiment of the review using the detected language.  
-(3) The languages are constrained to the set of languages supported by Comprehend's detectSentiment API.  
-(4) Year is constrained to 1996 just to limit the scope to 5000 records, so query will run quickly (~1m)  
+(3) Year is constrained to 1996 just to limit the scope to around 5000 records, so query will run quickly (~1m)  
+(4) The languages are constrained to the set of languages supported by Comprehend's detectSentiment API.  
 
 
 3. Explore results
@@ -344,7 +344,7 @@ FROM amazon_reviews_with_language_and_sentiment_1996
 ```
 Take a look at the results:
 ```
-SELECT lang, review_headline, review_headline_en
+SELECT language, review_headline, review_headline_en
 FROM amazon_reviews_normalised_to_english_1996
 WHERE language <> 'en'
 LIMIT 5
@@ -386,7 +386,7 @@ An excellent Story of Swedish Immigrants in Boston	          [["ADDRESS","Boston
 ```
 *Notes:  
 (1) The languages are constrained to the set of languages supported by Comprehend's detectPiiEntities API (currently just en)  
-(2) Runs in about 8 minutes (5000/rows) - slower than the others since there is no batch API for pii detection. Service rate limit rate will be required for larger record sets.  
+(2) Runs in about 2 minutes (5000/rows) - a little slower than the others since there is no batch API for pii detection. Service rate limit rate increase may be required for larger record sets.  
 
 
 #### Use JSON to extract fields from the Comprehend JSON full response
@@ -428,7 +428,7 @@ SELECT
     text, 
     json_extract(dominant_languages, '$[0].languageCode') AS language, 
     json_extract(dominant_languages, '$[0].score') AS score 
-    FROM text_with_languages
+FROM text_with_languages
     
 text	                                                   language	score
 It is raining in Seattle, mais il fait beau à orlando	  "fr"	    0.7244962
