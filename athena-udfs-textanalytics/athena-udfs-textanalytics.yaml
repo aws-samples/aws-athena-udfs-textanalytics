@@ -3,7 +3,7 @@ Description: Sample Amazon Athena UDFs for Text Analytics using Amazon Comprehen
 Metadata:
   'AWS::ServerlessRepo::Application':
     Name: TextAnalyticsUDFHandler
-    SemanticVersion: 0.1.0
+    SemanticVersion: 0.1.1
     Description: 'This connector enables Amazon Athena to leverage Amazon Comprehend and Amazon Translate services via UDFs made available via Lambda.'
     Author: 'Bob Strahan'
     SpdxLicenseId: Apache-2.0
