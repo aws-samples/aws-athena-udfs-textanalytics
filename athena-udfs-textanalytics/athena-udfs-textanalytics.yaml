@@ -1,10 +1,10 @@
 Transform: 'AWS::Serverless-2016-10-31'
-Description: Sample Amazon Athena UDFs for Text Analytics using Amazon Comprehend and Amazon Translate (v0.1.0)
+Description: Sample Amazon Athena UDFs for Text Analytics using Amazon Comprehend and Amazon Translate (v0.1.2)
 Metadata:
   'AWS::ServerlessRepo::Application':
     Name: TextAnalyticsUDFHandler
-    SemanticVersion: 0.1.1
-    Description: 'This connector enables Amazon Athena to leverage Amazon Comprehend and Amazon Translate services via UDFs made available via Lambda.'
+    SemanticVersion: 0.1.2
+    Description: 'This Athena UDF Lambda provides (i) text translation between languages using Amazon Translate, (ii) text analytics including detection of language, sentiment, entities and PII using Amazon Comprehend, and (iii) redaction of detected entities and PII.'
     Author: 'Bob Strahan'
     SpdxLicenseId: Apache-2.0
     LicenseUrl: LICENSE.txt
