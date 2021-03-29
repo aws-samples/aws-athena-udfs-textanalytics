@@ -446,6 +446,10 @@ Esta lloviendo en seattle	                              "es"	    0.98029345
 
 See the AWS blog post [Translate and analyze text using SQL functions with Amazon Athena, Amazon Translate, and Amazon Comprehend](https://aws.amazon.com/blogs/machine-learning/translate-and-analyze-text-using-sql-functions-with-amazon-athena-amazon-translate-and-amazon-comprehend/)
 
+[**Intro video with demo**](https://www.youtube.com/watch?v=Od7rXG-WMO4)
+
+[![Alt text](https://img.youtube.com/vi/Od7rXG-WMO4/0.jpg)](https://www.youtube.com/watch?v=Od7rXG-WMO4)
+
 ## License
 
 This project is licensed under the Apache-2.0 License.
