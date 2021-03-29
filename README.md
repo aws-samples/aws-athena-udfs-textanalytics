@@ -2,7 +2,7 @@
 
 See [athena-udfs-textanalytics/README.md](athena-udfs-textanalytics/README.md) for details on the Text Analytics UDF project.
   
-**Intro video with demo:**
+[**Intro video with demo**](https://www.youtube.com/watch?v=Od7rXG-WMO4)
 
 [![Alt text](https://img.youtube.com/vi/Od7rXG-WMO4/0.jpg)](https://www.youtube.com/watch?v=Od7rXG-WMO4)
 
