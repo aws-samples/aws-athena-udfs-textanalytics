@@ -642,7 +642,9 @@ public class TextAnalyticsUDFHandler
             } 
             catch (Exception e) {
                 System.out.println("ERROR: Translate API Exception.\nInput String size: " + getUtf8StringLength(batch[i]) + " bytes. String:\n" + batch[i]);
-                throw e;
+                System.out.println("EXCEPTION:\n" + e);
+                // return input text untranslated
+                result[i] = batch[i];
             }
         }
         return result;
@@ -666,7 +668,9 @@ public class TextAnalyticsUDFHandler
             } 
             catch (Exception e) {
                 System.out.println("ERROR: Translate API Exception.\nInput String size: " + getUtf8StringLength(batch[i]) + " bytes. String:\n" + batch[i]);
-                throw e;
+                System.out.println("EXCEPTION:\n" + e);
+                // return input text untranslated
+                result[i] = batch[i];
             }
         }
         // merge results to single output row
