@@ -59,10 +59,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.amazonaws.athena.connector.lambda.metadata.ListTablesRequest.UNLIMITED_PAGE_SIZE_VALUE;
 
 /**
  * This class allows you to leverage AWS Glue's DataCatalog to satisfy portions of the functionality required in a
@@ -95,6 +98,10 @@ public abstract class GlueMetadataHandler
 {
     private static final Logger logger = LoggerFactory.getLogger(GlueMetadataHandler.class);
 
+    /**
+     * The maximum number of tables returned in a single response (as defined in the Glue API docs).
+     */
+    protected static final int GET_TABLES_REQUEST_MAX_RESULTS = 100;
     //name of the environment variable that can be used to set which Glue catalog to use (e.g. setting this to
     //a different aws account id allows you to use cross-account catalogs)
     private static final String CATALOG_NAME_ENV_OVERRIDE = "glue_catalog";
@@ -105,7 +112,9 @@ public abstract class GlueMetadataHandler
     //Splitter for inline map properties
     private static final Splitter.MapSplitter MAP_SPLITTER = Splitter.on(",").trimResults().withKeyValueSeparator("=");
     //Regex we expect for a table resource ARN
-    private static final Pattern TABLE_ARN_REGEX = Pattern.compile("^arn:aws:[a-z]+:[a-z1-9-]+:[0-9]{12}:table\\/(.+)$");
+    private static final Pattern TABLE_ARN_REGEX = Pattern.compile("^arn:(?:aws|aws-cn|aws-us-gov):[a-z]+:[a-z1-9-]+:[0-9]{12}:table\\/(.+)$");
+    //Regex we expect for a lambda function ARN
+    private static final String FUNCTION_ARN_REGEX = "arn:aws[a-zA-Z-]*?:lambda:[a-zA-Z0-9-]+:(\\d{12}):function:[a-zA-Z0-9-_]+";
     //Table property that we expect to contain the source table name
     public static final String SOURCE_TABLE_PROPERTY = "sourceTable";
     //Table property that we expect to contain the column name mapping
@@ -193,6 +202,14 @@ public abstract class GlueMetadataHandler
     {
         String override = System.getenv(CATALOG_NAME_ENV_OVERRIDE);
         if (override == null) {
+            if (request.getContext() != null) {
+                String functionArn = request.getContext().getInvokedFunctionArn();
+                String functionOwner = getFunctionOwner(functionArn).orElse(null);
+                if (functionOwner != null) {
+                    logger.debug("Function Owner: " + functionOwner);
+                    return functionOwner;
+                }
+            }
             return request.getIdentity().getAccount();
         }
         return override;
@@ -260,12 +277,15 @@ public abstract class GlueMetadataHandler
     }
 
     /**
-     * Returns a list of tables from AWS Glue DataCatalog with optional filtering for the requested schema (aka database)
+     * Returns a paginated list of tables from AWS Glue DataCatalog with optional filtering for the requested schema
+     * (aka database).
      *
      * @param blockAllocator Tool for creating and managing Apache Arrow Blocks.
      * @param request Provides details on who made the request and which Athena catalog they are querying.
      * @param filter The TableFilter to apply to all tables before adding them to the results list.
      * @return The ListTablesResponse which mostly contains the list of table names.
+     * @implNote A complete (un-paginated) list of tables should be returned if the request's pageSize is set to
+     * ListTablesRequest.UNLIMITED_PAGE_SIZE_VALUE.
      */
     protected ListTablesResponse doListTables(BlockAllocator blockAllocator, ListTablesRequest request, TableFilter filter)
             throws Exception
@@ -275,9 +295,17 @@ public abstract class GlueMetadataHandler
         getTablesRequest.setDatabaseName(request.getSchemaName());
 
         Set<TableName> tables = new HashSet<>();
-        String nextToken = null;
+        String nextToken = request.getNextToken();
+        int pageSize = request.getPageSize();
         do {
             getTablesRequest.setNextToken(nextToken);
+            if (pageSize != UNLIMITED_PAGE_SIZE_VALUE) {
+                // Paginated requests will include the maxResults argument determined by the minimum value between the
+                // pageSize and the maximum results supported by Glue (as defined in the Glue API docs).
+                int maxResults = Math.min(pageSize, GET_TABLES_REQUEST_MAX_RESULTS);
+                getTablesRequest.setMaxResults(maxResults);
+                pageSize -= maxResults;
+            }
             GetTablesResult result = awsGlue.getTables(getTablesRequest);
 
             for (Table next : result.getTableList()) {
@@ -288,9 +316,9 @@ public abstract class GlueMetadataHandler
 
             nextToken = result.getNextToken();
         }
-        while (nextToken != null);
+        while (nextToken != null && (pageSize == UNLIMITED_PAGE_SIZE_VALUE || pageSize > 0));
 
-        return new ListTablesResponse(request.getCatalogName(), tables);
+        return new ListTablesResponse(request.getCatalogName(), tables, nextToken);
     }
 
     /**
@@ -509,5 +537,28 @@ public abstract class GlueMetadataHandler
                     .collect(Collectors.joining(","));
             schemaBuilder.addMetadata(DATETIME_FORMAT_MAPPING_PROPERTY_NORMALIZED, datetimeFormatMappingString);
         }
+    }
+
+    /**
+     * Parse the function owner from a lambda function ARN
+     *
+     * @param functionArn The lambda function arn
+     * @returns a string of the function owner
+     */
+    private Optional<String> getFunctionOwner(String functionArn)
+    {
+        if (functionArn != null) {
+            Pattern arnPattern = Pattern.compile(FUNCTION_ARN_REGEX);
+            Matcher arnMatcher = arnPattern.matcher(functionArn);
+            try {
+                if (arnMatcher.matches() && arnMatcher.groupCount() > 0 && arnMatcher.group(1) != null) {
+                    return Optional.of(arnMatcher.group(1));
+                }
+            }
+            catch (Exception e) {
+                logger.warn("Unable to parse owner from function arn: " + functionArn, e);
+            }
+        }
+        return Optional.empty();
     }
 }

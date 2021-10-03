@@ -25,7 +25,7 @@ Then try the query examples below, or examples of your own, using the UDF.
 #### How the UDF works
 For more information about the Athena UDF framework, see [Querying with User Defined Functions](https://docs.aws.amazon.com/athena/latest/ug/querying-udf.html).
 
-The Java class [TextAnalyticsUDFHandler](./src/main/java/com/amazonaws/athena/connectors/textanalytics/TextAnalyticsUDFHandler.java) implements our UDF Lambda function handler. Each text analytics function has a corresponding public method in this class. 
+The Java class [TextAnalyticsUDFHandler](./src/main/java/com/amazonaws/athena/udf/textanalytics/TextAnalyticsUDFHandler.java) implements our UDF Lambda function handler. Each text analytics function has a corresponding public method in this class. 
 
 Athena invokes our UDF Lambda function with batches of input records. The TextAnalyticsUDFHandler subdivides these batches into smaller batches of up to 25 rows to take advantage of the Amazon Comprehend synchronous multi-document batch APIs where they are available (for example, for detecting language, entities, and sentiment). When there is no synchronous multi-document API available (such as for DetectPiiEntity and TranslateText), we use the single-document API instead.
 
