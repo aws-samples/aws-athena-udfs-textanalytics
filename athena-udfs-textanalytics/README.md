@@ -169,7 +169,7 @@ Input languages supported: en | es | fr | de | it | pt | ar | hi | ja | ko | zh 
 
 #### detect\_entities(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR
 
-Returns JSON string value with list of PII types and values:
+Returns JSON string value with list of Entity types and values:
 
 ```
 USING EXTERNAL FUNCTION detect_entities(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR LAMBDA 'textanalytics-udf' 
@@ -194,7 +194,7 @@ entities_all
 #### redact\_entities(text_col VARCHAR, lang VARCHAR, type VARCHAR) RETURNS VARCHAR
 
 Redacts specified entity values from the input string.
-Use the `types` argument to specify a list of [PII types](https://docs.aws.amazon.com/comprehend/latest/dg/API_PiiEntity.html#comprehend-Type-PiiEntity-Type) to be redacted.  
+Use the `types` argument to specify a list of [Entity types](https://docs.aws.amazon.com/comprehend/latest/dg/API_Entity.html) to be redacted.  
 
 ```
 -- redact PERSON
