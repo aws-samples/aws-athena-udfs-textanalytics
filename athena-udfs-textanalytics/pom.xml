@@ -5,17 +5,17 @@
     <parent>
         <artifactId>aws-athena-query-federation</artifactId>
         <groupId>com.amazonaws</groupId>
-        <version>1.0</version>
+        <version>1.1.4</version>
     </parent>
-    
-    <groupId>com.amazonaws.athena.connectors.textanalyticsudfs</groupId>
-    <artifactId>textanalyticsudfs</artifactId>
-  
     <modelVersion>4.0.0</modelVersion>
-
+    
+    <groupId>com.amazonaws.athena.udf.textanalytics</groupId>
+    <artifactId>textanalyticsudfs</artifactId>
     <version>1.0</version>
-
+  
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <slf4jVersion>1.7.30</slf4jVersion>
         <log4j2Version>2.13.3</log4j2Version>
     </properties>
@@ -23,9 +23,9 @@
     <dependencyManagement>
       <dependencies>
         <dependency>
-          <groupId>com.amazonaws</groupId>
-          <artifactId>aws-java-sdk-bom</artifactId>
-          <version>1.11.928</version>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>bom</artifactId>
+          <version>2.16.1</version>
           <type>pom</type>
           <scope>import</scope>
         </dependency>
@@ -39,12 +39,12 @@
             <version>20201115</version>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-comprehend</artifactId>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>comprehend</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-translate</artifactId>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>translate</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-athena-federation-sdk</artifactId>
-            <version>2021.14.1</version>
+            <version>${aws-athena-federation-sdk.version}</version>
             <exclusions>
                 <!-- replaced with jcl-over-slf4j -->
                 <exclusion>

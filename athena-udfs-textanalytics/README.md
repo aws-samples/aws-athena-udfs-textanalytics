@@ -1,6 +1,6 @@
 # Sample Amazon Athena UDFs for text translation and analytics using Amazon Comprehend and Amazon Translate
 
-This Athena UDF Lambda provides (i) text translation between languages using Amazon Translate, (ii) text analytics including detection of language, sentiment, entities and PII using Amazon Comprehend, and (iii) redaction of detected entities and PII.
+This Athena UDF Lambda provides (i) text translation between languages using Amazon Translate, (ii) text analytics including detection of language, sentiment, key phrases, entities and PII using Amazon Comprehend, and (iii) redaction of detected entities and PII.
 
 ### Deploying The Connector
 
@@ -130,6 +130,35 @@ SELECT detect_sentiment_all('Joe is very happy', 'en') as sentiment_all
 
 sentiment_all
 {"sentiment":"POSITIVE","sentimentScore":{"positive":0.999519,"negative":7.407639E-5,"neutral":2.7478999E-4,"mixed":1.3210243E-4}}
+```
+
+### Detect Key Phrases
+
+Input languages supported: en | es | fr | de | it | pt | ar | hi | ja | ko | zh | zh-TW (See [doc](https://docs.aws.amazon.com/comprehend/latest/dg/API_BatchDetectKeyPhrases.html) for latest)
+
+
+#### detect\_key\_phrases(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR
+
+Returns JSON string value with list of PII types and values:
+
+```
+USING EXTERNAL FUNCTION detect_key_phrases(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR LAMBDA 'textanalytics-udf' 
+SELECT detect_key_phrases('His name is Joe, he lives in Richmond VA, he bought an Amazon Echo Show on January 5th, and he loves it', 'en') as key_phrases
+
+key_phrases
+["His name","Joe","Richmond VA","an Amazon Echo Show","January 5th"]
+```
+
+#### detect\_key\_phrases\_all(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR
+
+Returns the detected entity types, scores, values, and offsets as a JSON formatted string, which can be further analysed with Athena's `json_extract()` function.
+
+```
+USING EXTERNAL FUNCTION detect_key_phrases_all(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR LAMBDA 'textanalytics-udf' 
+SELECT detect_key_phrases_all('His name is Joe, he lives in Richmond VA, he bought an Amazon Echo Show on January 5th, and he loves it', 'en') as key_phrases_all
+
+key_phrases_all
+[{"score":0.9996042,"text":"His name","beginOffset":0,"endOffset":8},{"score":0.9533832,"text":"Joe","beginOffset":12,"endOffset":15},{"score":0.9999686,"text":"Richmond VA","beginOffset":29,"endOffset":40},{"score":0.99992067,"text":"an Amazon Echo Show","beginOffset":52,"endOffset":71},{"score":0.97426,"text":"January 5th","beginOffset":75,"endOffset":86}]
 ```
 
 ### Detect and Redact Entities
