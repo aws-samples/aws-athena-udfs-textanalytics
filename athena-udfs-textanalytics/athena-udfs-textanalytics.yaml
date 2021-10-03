@@ -1,8 +1,8 @@
 Transform: 'AWS::Serverless-2016-10-31'
-Description: Sample Amazon Athena UDFs for text translation and analytics using Amazon Comprehend and Amazon Translate (v0.3)
+Description: Sample Amazon Athena UDFs for text translation and analytics using Amazon Comprehend and Amazon Translate (v0.3.0)
 Metadata:
   'AWS::ServerlessRepo::Application':
-    Name: TextAnalyticsUDFHandlerTEST030
+    Name: TextAnalyticsUDFHandler
     SemanticVersion: 0.3.0
     Description: 'This Athena UDF provides (i) text translation using Amazon Translate, (ii) text analytics including detection of language, sentiment, key phrases, entities and PII using Amazon Comprehend, and (iii) redaction of detected entities and PII.'
     Author: 'Bob Strahan'
