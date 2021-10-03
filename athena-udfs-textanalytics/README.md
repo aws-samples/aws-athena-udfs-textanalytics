@@ -139,7 +139,7 @@ Input languages supported: en | es | fr | de | it | pt | ar | hi | ja | ko | zh 
 
 #### detect\_key\_phrases(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR
 
-Returns JSON string value with list of PII types and values:
+Returns JSON string value with list of Key Phrase values:
 
 ```
 USING EXTERNAL FUNCTION detect_key_phrases(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR LAMBDA 'textanalytics-udf' 
@@ -151,7 +151,7 @@ key_phrases
 
 #### detect\_key\_phrases\_all(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR
 
-Returns the detected entity types, scores, values, and offsets as a JSON formatted string, which can be further analysed with Athena's `json_extract()` function.
+Returns the detected key phrases, scores, and offsets as a JSON formatted string, which can be further analysed with Athena's `json_extract()` function.
 
 ```
 USING EXTERNAL FUNCTION detect_key_phrases_all(text_col VARCHAR, lang VARCHAR) RETURNS VARCHAR LAMBDA 'textanalytics-udf' 
