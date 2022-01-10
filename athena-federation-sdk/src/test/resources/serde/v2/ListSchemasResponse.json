@@ -1,5 +1,0 @@
-{
-  "@type" : "ListSchemasResponse",
-  "catalogName" : "test-catalog",
-  "schemas" : [ "schema1", "schema2" ]
-}

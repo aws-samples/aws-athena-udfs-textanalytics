@@ -1,6 +1,10 @@
 # Sample Amazon Athena UDFs for text translation and analytics using Amazon Comprehend and Amazon Translate
 
 This Athena UDF Lambda provides (i) text translation between languages using Amazon Translate, (ii) text analytics including detection of language, sentiment, key phrases, entities and PII using Amazon Comprehend, and (iii) redaction of detected entities and PII.
+For additional information, refer to blog post: www.amazon.com/athena-textanalyticsudf 
+
+(Amazon Redshift users, see companion blog post: www.amazon.com/redshift-textanalyticsudf )
+
 
 ### Deploying The Connector
 
@@ -15,10 +19,9 @@ Then try the query examples below, or examples of your own, using the UDF.
 
 #### Build and Install UDF from source
 
-1. From the athena-federation-sdk dir, run `mvn clean install` if you haven't already.
-2. From the athena-udfs-textanalytics dir, run `mvn clean install`.
-3. From the athena-udfs-textanalytics dir, run  `./publish.sh <S3_BUCKET_NAME> ./athena-udfs-textanalytics us-east-1` to publish the connector to your private AWS Serverless Application Repository. The S3_BUCKET in the command is where a copy of the connector's code will be stored for Serverless Application Repository to retrieve it. This will allow users with permission to do so, the ability to deploy instances of the connector via 1-Click form. Then navigate to [Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo)
-4. Deploy the lambda function from the serverless repo, or run `sam deploy --template-file packaged.yaml --stack-name TextAnalyticsUDFHandler --capabilities CAPABILITY_IAM`
+1. From the athena-udfs-textanalytics dir, run `mvn clean install`.
+2. From the athena-udfs-textanalytics dir, run  `./publish.sh <S3_BUCKET_NAME> ./athena-udfs-textanalytics us-east-1` to publish the connector to your private AWS Serverless Application Repository. The S3_BUCKET in the command is where a copy of the connector's code will be stored for Serverless Application Repository to retrieve it. This will allow users with permission to do so, the ability to deploy instances of the connector via 1-Click form. Then navigate to [Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo)
+3. Deploy the lambda function from the serverless repo, or run `sam deploy --template-file packaged.yaml --stack-name TextAnalyticsUDFHandler --capabilities CAPABILITY_IAM`
 Then try the query examples below, or examples of your own, using the UDF.
 
 
