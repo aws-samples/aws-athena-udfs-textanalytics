@@ -1490,24 +1490,36 @@ public class TextAnalyticsUDFHandler extends UserDefinedFunctionHandler
         System.out.println(toJSON(textAnalyticsUDFHandler.redact_pii_entities(text, lang, makeArray("ALL", 1))));        
     }
 
-    static void performance_tests() throws Exception
+    static void performance_tests(String[] args) throws Exception
     {
         TextAnalyticsUDFHandler textAnalyticsUDFHandler = new TextAnalyticsUDFHandler();
-        System.out.println("\nDETECT ENTITIES - BATCH PERFORMANCE TEST");
-        int size = 7500;
+        int size = 5000;
+        if (args.length > 1) {
+            size = Integer.parseInt(args[1]);
+        }
+        String testString = "I am Bob, I live in Herndon";
+        if (args.length > 2) {
+            testString = args[2];
+        }
+        System.out.printf("\nDETECT ENTITIES PERF TEST: Records: %d, TestString: %s\n", size, testString);
         String[] text;
         String[] lang;
-        text = makeArray("I am Bob, I live in Herndon", size);
+        text = makeArray(testString, size);
         lang = makeArray("en", size);
-        textAnalyticsUDFHandler.detect_entities(text, lang);
-        //textAnalyticsUDFHandler.detect_pii_entities(text, lang);
+        textAnalyticsUDFHandler.maxBatchSize = size;
+        //textAnalyticsUDFHandler.detect_entities(text, lang);
+        textAnalyticsUDFHandler.detect_pii_entities(text, lang);
         System.out.println("\nDONE");
     }
 
     // java -cp target/textanalyticsudfs-1.0.jar com.amazonaws.athena.udf.textanalytics.TextAnalyticsUDFHandler
     public static void main(String[] args) throws Exception
     {
-        functional_tests();
-        //performance_tests();
+        if (args.length == 0) {
+            functional_tests();
+        } 
+        else {
+            performance_tests(args);
+        }
     }
 }
