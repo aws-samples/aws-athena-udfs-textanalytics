@@ -9,7 +9,7 @@ for PARTITION_COUNT in 1 5 10 20; do
     for i in $(seq $PARTITION_COUNT)
     do
         echo "Starting partition: $i"
-        java -cp target/textanalyticsudfs-1.0.jar com.amazonaws.athena.udf.textanalytics.TextAnalyticsUDFHandler $REQ_PER_PARTITION "$PAYLOAD" > /tmp/out &
+        java -cp target/textanalyticsudfs-1.0.jar com.amazonaws.athena.udf.textanalytics.TextAnalyticsUDFHandler perftest $REQ_PER_PARTITION "$PAYLOAD" > /tmp/out &
         PIDS[${i}]=$!
     done
 
