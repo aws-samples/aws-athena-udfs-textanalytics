@@ -1,8 +1,8 @@
 PAYLOAD="My name is Bob. I live in Herndon."
-TOTAL_REQUESTS=1000
+TOTAL_REQUESTS=20000
 
 PAYLOAD_BYTES=${#PAYLOAD}
-for PARTITION_COUNT in 20; do
+for PARTITION_COUNT in 1 5 10 20; do
     REQ_PER_PARTITION=$((TOTAL_REQUESTS / PARTITION_COUNT))
     echo "================================================================================================="
     echo "$PARTITION_COUNT concurrent batches, $REQ_PER_PARTITION requests per batch = $TOTAL_REQUESTS requests"
