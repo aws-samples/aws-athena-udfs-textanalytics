@@ -1508,7 +1508,8 @@ public class TextAnalyticsUDFHandler extends UserDefinedFunctionHandler
         lang = makeArray("en", size);
         textAnalyticsUDFHandler.maxBatchSize = size;
         //textAnalyticsUDFHandler.detect_entities(text, lang);
-        textAnalyticsUDFHandler.detect_pii_entities(text, lang);
+        String[] result = textAnalyticsUDFHandler.detect_pii_entities(text, lang);
+        System.out.println("\nRESULT: " + toJSON(result));
         System.out.println("\nDONE");
     }
 
